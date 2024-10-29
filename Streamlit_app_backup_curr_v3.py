@@ -493,13 +493,12 @@ def create_sentiment_gauge(sentiment_score):
     
     # Update layout for better visualization with black background
     fig.update_layout(
-        height=400,
-        margin=dict(l=20, r=20, t=50, b=20),
+        height=160,  # Reduced from 400 to 280 (30% smaller)
+        margin=dict(l=14, r=14, t=35, b=14),  # Reduced margins by 30%
         paper_bgcolor="black",
         plot_bgcolor="black",
-        font={'size': 16, 'color': 'white'}
-    )
-    
+        font={'size': 12, 'color': 'white'}  # Reduced font size too
+    )    
     return fig
 
 def process_email_sentiment(session, email_body):
