@@ -1,2 +1,17 @@
-# Callaway Streamlit Email/Support Caddy App
-![alt text](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/mmalveira/-/blob/7d536448c95000b76ffb8cde7217bb163e07324e/Callaway%20Streamlit%20App/image_1.jpg)
+# Callaway Streamlit Email/Support Caddy App with Cortex LLM Function
+
+## Packages to Import for the Streamlit App
+- `plotly`
+- `langdetect`
+
+## Setup: Notebook Used for Initial Setup
+1. Choose or create a database as needed.
+2. Set up the table with the following command:
+   - `CREATE_CS_TABLE`
+3. Generate synthetic data using:
+   - `GENERATE_CS_GOLF_DATA`
+
+## Examples
+![Example 1](./image_1.jpg)
+![Example 2](./image_2.jpg)
+![Example 3](./image_3.jpg)
