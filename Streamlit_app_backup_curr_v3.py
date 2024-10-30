@@ -493,11 +493,11 @@ def create_sentiment_gauge(sentiment_score):
     
     # Update layout for better visualization with black background
     fig.update_layout(
-        height=160,  # Reduced from 400 to 280 (30% smaller)
-        margin=dict(l=14, r=14, t=35, b=14),  # Reduced margins by 30%
+        height=160,  
+        margin=dict(l=14, r=14, t=35, b=14),  
         paper_bgcolor="black",
         plot_bgcolor="black",
-        font={'size': 12, 'color': 'white'}  # Reduced font size too
+        font={'size': 12, 'color': 'white'}  
     )    
     return fig
 
@@ -1053,6 +1053,7 @@ def handle_sentiment(session, model):
                                 {sentiment_results['category']}
                             </div>
                             <div class="sentiment-details">
+                                <!-- 
                                 <div class="sentiment-detail-item">
                                     <div style="font-size: 14px; color: #888;">Raw Score</div>
                                     <div style="font-size: 20px; margin-top: 5px;">{sentiment_results['raw_score']:.3f}</div>
@@ -1061,12 +1062,13 @@ def handle_sentiment(session, model):
                                     <div style="font-size: 14px; color: #888;">Confidence</div>
                                     <div style="font-size: 20px; margin-top: 5px;">{abs(sentiment_results['raw_score'] * 100):.1f}%</div>
                                 </div>
+                                -->
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
 
                     # Gauge Chart
-                    st.title("Sentiment Gauge Chart")
+                    st.subheader("Sentiment Gauge Chart")
                     
                     # Create and display the gauge chart using actual sentiment score
                     fig = create_sentiment_gauge(sentiment_results['scaled_score'])
