@@ -1308,68 +1308,103 @@ def add_copy_button(code_string, unique_id):
 ##########################################
 #             Email Reply 
 ##########################################
+def extract_first_name(email):
+   """Extract and format username from email address"""
+   try:
+       # Split at @ and get first part
+       username = email.split('@')[0]
+       
+       # If username contains numbers (e.g., "nicholas12")
+       if any(char.isdigit() for char in username):
+           # Remove all numbers and capitalize
+           clean_name = ''.join(char for char in username if char.isalpha())
+           return clean_name.capitalize()
+       # If it's like "msmith"
+       else:
+           # Just capitalize first letter
+           return username.capitalize()
+           
+   except:
+       return "Valued Customer"
+
 def handle_reply_generation(session, model):
-    """Handle Reply Generation Feature"""
-    try:
-        # Initialize session state
-        if 'selected_email_reply' not in st.session_state:
-            st.session_state.selected_email_reply = None
-        
-        # Fetch emails
-        table_query = """
-            SELECT *,
-                   TO_CHAR(received_time, 'Month DD, YYYY HH:MI:SS AM') as FORMATTED_RECEIVED_TIME,
-                   TO_CHAR(response_due_by, 'Month DD, YYYY HH:MI:SS AM') as FORMATTED_DUE_TIME
-            FROM CUSTOMER_SUPPORT_EMAILS
-            TABLESAMPLE (10 ROWS)
-        """
-        data_df = execute_sql_safely(session, table_query)
+   """Handle Reply Generation Feature"""
+   try:
+       # Initialize session state
+       if 'selected_email_reply' not in st.session_state:
+           st.session_state.selected_email_reply = None
+       
+       # Fetch emails with email_from field
+       table_query = """
+           SELECT *,
+                  TO_CHAR(received_time, 'Month DD, YYYY HH:MI:SS AM') as FORMATTED_RECEIVED_TIME,
+                  TO_CHAR(response_due_by, 'Month DD, YYYY HH:MI:SS AM') as FORMATTED_DUE_TIME
+           FROM CUSTOMER_SUPPORT_EMAILS
+           TABLESAMPLE (10 ROWS)
+       """
+       data_df = execute_sql_safely(session, table_query)
+       if data_df is None or data_df.empty:
+           st.warning("No entries available for reply generation.")
+           return
 
-        if data_df is None or data_df.empty:
-            st.warning("No entries available for reply generation.")
-            return
+       # Select and display email
+       selected_email = select_email(data_df, "reply")
+       st.session_state.selected_email_reply = selected_email
+       display_email(selected_email)
 
-        # Select and display email
-        selected_email = select_email(data_df, "reply")
-        st.session_state.selected_email_reply = selected_email
-        display_email(selected_email)
-
-        if st.button("Generate Reply", key="generate_reply_button"):
-            with st.spinner(f'Generating a sympathetic reply using {model} model...'):
-                suggested_reply = generate_reply(session, selected_email["EMAIL_BODY"], model)
-                
-                if suggested_reply:
-                    # Store the reply in session state
-                    st.session_state.current_reply = suggested_reply
-                    
-                    # Display the reply
-                    st.markdown("### 📧 Suggested Reply")
-                    st.markdown("""
-                        <div class="reply-card">
-                            <div class="reply-content">%s</div>
-                        </div>
-                    """ % suggested_reply.replace('\n', '<br>'), unsafe_allow_html=True)
-                    
-                    # Add text area for editing
-                    st.markdown("### ✏️ Edit Reply")
-                    edited_reply = st.text_area(
-                        "Edit the suggested reply:",
-                        value=suggested_reply,
-                        height=200,
-                        key="reply_editor"
-                    )
-                    
-                    # Add copy buttons for original and edited replies
-                    st.markdown("### 📋 Copy Original Reply")
-                    add_copy_button(suggested_reply, unique_id='original_reply')
-
-                    st.markdown("### 📋 Copy Edited Reply")
-                    add_copy_button(edited_reply, unique_id='edited_reply')
-                else:
-                    st.error("Reply generation failed. Please try again.")
-
-    except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
+       if st.button("Generate Reply", key="generate_reply_button"):
+           with st.spinner(f'Generating a sympathetic reply using {model} model...'):
+               # Extract and format name from email_from
+               customer_name = extract_first_name(selected_email["EMAIL_FROM"])
+               
+               # Generate reply with personalization
+               suggested_reply = generate_reply(session, selected_email["EMAIL_BODY"], model)
+               
+               if suggested_reply:
+                   # Replace generic greeting with personalized one
+                   suggested_reply = suggested_reply.replace(
+                       "Dear Valued Customer,", 
+                       f"Dear {customer_name},"
+                   ).replace(
+                       "Dear Sir/Madam,", 
+                       f"Dear {customer_name},"
+                   ).replace(
+                       "Dear Customer,", 
+                       f"Dear {customer_name},"
+                   ).replace(
+                       " Dear [Name],", 
+                       f"Dear {customer_name},"
+                   )
+                   
+                   # Store the reply in session state
+                   st.session_state.current_reply = suggested_reply
+                   
+                   # Display the reply
+                   st.markdown("### 📧 Suggested Reply")
+                   st.markdown("""
+                       <div class="reply-card">
+                           <div class="reply-content">%s</div>
+                       </div>
+                   """ % suggested_reply.replace('\n', '<br>'), unsafe_allow_html=True)
+                   
+                   # Add text area for editing
+                   st.markdown("### ✏️ Edit Reply")
+                   edited_reply = st.text_area(
+                       "Edit the suggested reply:",
+                       value=suggested_reply,
+                       height=200,
+                       key="reply_editor"
+                   )
+                   
+                   # Add copy buttons for original and edited replies
+                   st.markdown("### 📋 Copy Original Reply")
+                   add_copy_button(suggested_reply, unique_id='original_reply')
+                   st.markdown("### 📋 Copy Edited Reply")
+                   add_copy_button(edited_reply, unique_id='edited_reply')
+               else:
+                   st.error("Reply generation failed. Please try again.")
+   except Exception as e:
+       st.error(f"An error occurred: {str(e)}")
 
 
 ##########################################
